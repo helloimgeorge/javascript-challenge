@@ -1,5 +1,7 @@
 "strict use";
 
+document.addEventListener('DOMContentLoaded', onReady);
+
 function onReady() {
     var stateForm = document.getElementById('signup');
     var stateSelect = stateForm.elements['state'];
@@ -33,17 +35,24 @@ function onReady() {
     });
 
     signup.addEventListener('submit', onSubmit);
-}
+} // onReady
 
 
 function onSubmit(evt) {
     var dob = this.elements['birthdate'].value;
 
     evt.returnValue = validateForm(this);
-    if (!evt.returnValue && evt.preventDefault) {
+    var age = calculateAge(dob);
+    console.log(age);
+    if (!evt.returnValue && evt.preventDefault && age < 14) {
+        if (age < 14) {
+            birthdate.className = 'form-control invalid invalid-form';
+            var msgElem = document.getElementById('birthdateMessage');
+            msgElem.innerHTML = 'You must be 13 years or older to sign up';
+        }
         evt.preventDefault();
     }
-    evt.returnValue = calculateAge(dob);
+
     return evt.returnValue;
 
 } //onSubmit()
@@ -53,9 +62,9 @@ function validateForm(form) {
 
     var option = document.getElementById('occupation');
 
-        if (option.value == 'other') {
-            requiredFields.push('occupationOther');
-        }
+    if (option.value == 'other') {
+        requiredFields.push('occupationOther');
+    }
 
     var idx;
     var formValid = true;
@@ -63,17 +72,11 @@ function validateForm(form) {
         formValid &= validateRequiredField(form.elements[requiredFields[idx]]);
     }
 
-    if (!formValid) {
-        /* var errMsg = document.getElementById('error-message');
-        errMsg.innerHTML = "Please fill out the required fields";
-        errMsg.style.display = 'block'; */
-    }
-
     return formValid;
 
 } //validateForm()
 
- function validateRequiredField(field) {
+function validateRequiredField(field) {
     var value = field.value.trim(); //need to trim entered values so its not counted
     var valid = value.length > 0;
 
@@ -82,11 +85,9 @@ function validateForm(form) {
         var res = zipRegExp.test(value);
         if (res) {
             field.className = 'form-control';
-
         } else {
             valid = false;
             field.className ='form-control invalid invalid-form';
-
         }
     } else if (valid) {
         field.className = 'form-control';
@@ -96,28 +97,11 @@ function validateForm(form) {
     }
 
     return valid;
-}
+} // end validateRequiredFields
 
 function calculateAge(dob) {
     if (!dob) {
         throw new Error('Please tell me when you were born!');
     }
-
-    var today = new Date();
-    dob = new Date(dob);
-    var yearsDiff = today.getFullYear() - dob.getUTCFullYear();
-    var monthsDiff = today.getMonth() - dob.getUTCMonth();
-    var daysDiff = today.getDate() - dob.getUTCDate();
-
-    if (monthsDiff < 0 || (0 == monthsDiff && daysDiff < 0)) {
-        yearsDiff--;
-    }
-
-    return yearsDiff;
-}
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', onReady);
+    return moment().diff(dob, 'years');
+} // calculateAge method
